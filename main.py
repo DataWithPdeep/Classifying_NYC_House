@@ -1,8 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 import pandas as pd
 import joblib
+import os
 
 app = FastAPI(title="NYC House Classification API")
 
@@ -27,14 +30,21 @@ COLUMNS = [
     "neighbourhood",
 ]
 
-model = None
+# -------------------------
+# Load Model
+# -------------------------
+
+MODEL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "Model_Pipeline.pkl"
+)
+
+model = joblib.load(MODEL_PATH)
 
 
-@app.on_event("startup")
-def load_model():
-    global model
-    model = joblib.load("Model_Pipeline.pkl")
-
+# -------------------------
+# Pydantic Input Model
+# -------------------------
 
 class Features(BaseModel):
     latitude: float = Field(..., ge=-90, le=90)
@@ -49,17 +59,43 @@ class Features(BaseModel):
     neighbourhood: str
 
 
+# -------------------------
+# Frontend
+# -------------------------
+
 @app.get("/")
 def home():
-    return {"message": "NYC House Classification API is Running Successfully 🚀"}
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "index.html")
+    )
 
+
+# -------------------------
+# API Health Check
+# -------------------------
+
+@app.get("/api")
+def api_home():
+    return {
+        "message": "NYC House Classification API is Running Successfully 🚀"
+    }
+
+
+# -------------------------
+# Prediction API
+# -------------------------
 
 @app.post("/predict")
 def predict(features: Features):
+
     try:
-        row = pd.DataFrame([features.model_dump()], columns=COLUMNS)
+        row = pd.DataFrame(
+            [features.model_dump()],
+            columns=COLUMNS
+        )
 
         prediction = model.predict(row)[0]
+
         probability = model.predict_proba(row)[0].tolist()
 
         return {
@@ -68,4 +104,18 @@ def predict(features: Features):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+# -------------------------
+# Static Files
+# -------------------------
+
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.dirname(__file__)),
+    name="static"
+)
