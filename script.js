@@ -3,8 +3,8 @@
 // ============================================================
 // Point this at wherever your FastAPI app is running.
 const API_BASE_URL = "https://classifying-nyc-house.onrender.com/";
-const PREDICT_ENDPOINT = `${API_BASE_URL}/predict`;
-const HEALTH_ENDPOINT = `${API_BASE_URL}/`;
+const PREDICT_ENDPOINT = "/predict";
+const HEALTH_ENDPOINT = "/api";
 
 const REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
