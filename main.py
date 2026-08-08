@@ -74,11 +74,11 @@ def home():
 # API Health Check
 # -------------------------
 
-@app.get("/api")
-def api_home():
-    return {
-        "message": "NYC House Classification API is Running Successfully 🚀"
-    }
+@app.get("/")
+def home():
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "index.html")
+    )
 
 
 # -------------------------
