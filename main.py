@@ -115,10 +115,7 @@ class Features(BaseModel):
 @app.get("/")
 def home():
     return FileResponse(
-        os.path.join(
-            os.path.dirname(__file__),
-            "index.html"
-        )
+        os.path.join(os.path.dirname(__file__), "index.html")
     )
 
 
